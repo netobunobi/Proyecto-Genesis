@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dllqek0if76ug"]
+
+[ext_resource type="Script" uid="uid://ci37iy2jgya1u" path="res://mesh_instance_3d.gd" id="1_6ba58"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_xwo6f"]
+
+[node name="Mundo" type="Node3D" unique_id=438850040]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=845832115]
+mesh = SubResource("BoxMesh_xwo6f")
+script = ExtResource("1_6ba58")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1823066609]
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=421566475]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.46815598, 2.6381578)

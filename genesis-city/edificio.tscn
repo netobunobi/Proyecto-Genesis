@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://dtxqgrvtyqpxp"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_mxufx"]
+size = Vector3(1, 4, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ihrhi"]
+albedo_color = Color(0.18431373, 0.7921569, 0, 1)
+
+[node name="Edificio_base" type="Node3D" unique_id=1030428876]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=2083850414]
+mesh = SubResource("BoxMesh_mxufx")
+surface_material_override/0 = SubResource("StandardMaterial3D_ihrhi")

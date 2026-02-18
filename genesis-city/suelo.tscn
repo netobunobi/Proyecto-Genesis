@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://be0q8x73w5jl8"]
+
+[sub_resource type="Curve3D" id="Curve3D_hy3li"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -4.6494884, 0, -24.635637, 0, 0, 0, 0, 0, 0, 0, 0, -50),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
+
+[node name="TramoSuelo" type="Node3D" unique_id=581208852]
+
+[node name="PuntosDeSpawn" type="Node3D" parent="." unique_id=1225071643]
+transform = Transform3D(0.34947163, -0.9369469, 0, 0.9369469, 0.34947163, 0, 0, 0, 1, -10, 0, -10)
+
+[node name="PosicionEdificio1" type="Marker3D" parent="PuntosDeSpawn" unique_id=469201937]
+transform = Transform3D(1.0000002, 2.9802322e-08, 0, -2.9802322e-08, 1.0000002, 0, 0, 0, 1, -2.172933, 5.825717, -5.773638)
+
+[node name="PosicionEdificio2" type="Marker3D" parent="PuntosDeSpawn" unique_id=968723604]
+transform = Transform3D(1.0000007, 5.9604645e-08, 0, -5.9604645e-08, 1.0000007, 0, 0, 0, 1, -1.9556403, 5.243147, 9.593124)
+
+[node name="PosicionEdificio3" type="Marker3D" parent="PuntosDeSpawn" unique_id=320879986]
+transform = Transform3D(1.0000015, 1.4901161e-07, 0, -1.4901161e-07, 1.0000015, 0, 0, 0, 1, 9.436731, -25.300243, -6.217762)
+
+[node name="PosicionEdificio4" type="Marker3D" parent="PuntosDeSpawn" unique_id=719776490]
+transform = Transform3D(1.0000032, 3.5762787e-07, 0, -3.5762787e-07, 1.0000032, 0, 0, 0, 1, 9.095278, -24.384815, 24.515762)
+
+[node name="Path3D" type="Path3D" parent="." unique_id=1421700293]
+curve = SubResource("Curve3D_hy3li")
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="." unique_id=919785309]
+mode = 2
+path_node = NodePath("../Path3D")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 0.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 1.0
+path_joined = false

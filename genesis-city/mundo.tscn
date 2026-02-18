@@ -1,17 +1,21 @@
 [gd_scene format=3 uid="uid://dllqek0if76ug"]
 
-[ext_resource type="Script" uid="uid://ci37iy2jgya1u" path="res://mesh_instance_3d.gd" id="1_6ba58"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_xwo6f"]
+[ext_resource type="Script" uid="uid://b4saexv4hiypv" path="res://camera_3d.gd" id="2_lgngo"]
+[ext_resource type="Script" uid="uid://erekysvhpkuh" path="res://generador_de_mundo.gd" id="3_fw4w5"]
+[ext_resource type="PackedScene" uid="uid://be0q8x73w5jl8" path="res://suelo.tscn" id="3_otwa2"]
+[ext_resource type="PackedScene" uid="uid://dtxqgrvtyqpxp" path="res://edificio.tscn" id="4_otwa2"]
 
 [node name="Mundo" type="Node3D" unique_id=438850040]
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=845832115]
-mesh = SubResource("BoxMesh_xwo6f")
-script = ExtResource("1_6ba58")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1823066609]
 shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=421566475]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.46815598, 2.6381578)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.93234646, 2.6381578)
+script = ExtResource("2_lgngo")
+
+[node name="GeneradorDeMundo" type="Node" parent="." unique_id=60591982 node_paths=PackedStringArray("camara_3d")]
+script = ExtResource("3_fw4w5")
+suelo_scene = ExtResource("3_otwa2")
+camara_3d = NodePath("../Camera3D")
+edificio_scene = ExtResource("4_otwa2")

@@ -5,11 +5,13 @@
 [ext_resource type="PackedScene" uid="uid://be0q8x73w5jl8" path="res://suelo.tscn" id="3_otwa2"]
 [ext_resource type="PackedScene" uid="uid://dtxqgrvtyqpxp" path="res://edificio.tscn" id="4_otwa2"]
 
+[sub_resource type="Environment" id="Environment_otwa2"]
+ambient_light_source = 2
+ambient_light_color = Color(0.8646751, 0.86467516, 0.8646751, 1)
+
 [node name="Mundo" type="Node3D" unique_id=438850040]
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1823066609]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15.751841, 0)
-shadow_enabled = true
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=62276623]
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=421566475]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9089955, 2.6381578)
@@ -20,3 +22,6 @@ script = ExtResource("3_fw4w5")
 suelo_scene = ExtResource("3_otwa2")
 camara_3d = NodePath("../Camera3D")
 edificio_scene = ExtResource("4_otwa2")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=752140072]
+environment = SubResource("Environment_otwa2")

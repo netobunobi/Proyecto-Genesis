@@ -8,10 +8,11 @@
 [node name="Mundo" type="Node3D" unique_id=438850040]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1823066609]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15.751841, 0)
 shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=421566475]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.93234646, 2.6381578)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9089955, 2.6381578)
 script = ExtResource("2_lgngo")
 
 [node name="GeneradorDeMundo" type="Node" parent="." unique_id=60591982 node_paths=PackedStringArray("camara_3d")]

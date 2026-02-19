@@ -46,10 +46,15 @@ func construir_todo_junto(color: Color, bioma: float):
 	# 1. DETERMINAR EL TIPO DE BIOMA (ESTADO SÓLIDO)
 	# Convertimos el float (0.0 - 1.0) en un entero (0, 1, 2)
 	# 0 = Bosque, 1 = Pueblo, 2 = Ciudad
+	# En suelo.gd, busca la parte del tipo_bioma:
+
 	var tipo_bioma = 0
-	if bioma < 0.35: tipo_bioma = 0   # Bosque
-	elif bioma < 0.75: tipo_bioma = 1 # Pueblo
-	else: tipo_bioma = 2              # Ciudad
+	if bioma < 0.25:     # Bosque (Solo cuando ya casi no hay sonido/presión)
+		tipo_bioma = 0
+	elif bioma < 0.85:   # PUEBLO (Rango ampliado para que dure 2 o 3 chunks)
+		tipo_bioma = 1
+	else:                # CIUDAD (Solo cuando el volumen es muy alto)
+		tipo_bioma = 2             # Ciudad
 	
 	for i in range(pasos + 1):
 		# ... (Cálculo de vértices y asfalto SIGUE IGUAL) ...

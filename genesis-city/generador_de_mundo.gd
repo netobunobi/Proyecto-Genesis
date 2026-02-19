@@ -31,17 +31,27 @@ func _ready() -> void:
 	for i in range(2): crear_tramo()
 
 func _process(delta: float) -> void:
-	if camara_3d.position.z < (z_proxima_generacion + 50.0): crear_tramo()
+	if camara_3d.position.z < (z_proxima_generacion + 50.0): 
+		crear_tramo()
 	borrar_tramos_viejos()
 	
-	if Input.is_action_pressed("ui_accept"): objetivo_volumen = 1.0
-	else: objetivo_volumen = 0.0
-	
-	volumen_actual = move_toward(volumen_actual, objetivo_volumen, delta * 0.05)
+	if Input.is_action_pressed("ui_accept"):
+		objetivo_volumen = 1.0
+		# Subida rápida como ya la tienes
+		volumen_actual = move_toward(volumen_actual, objetivo_volumen, delta * 0.5)
+	else:
+		objetivo_volumen = 0.0
+		# BAJADA MÁS LENTA: 
+		# Al poner 0.2 o 0.15, obligamos a que el valor "flote" más tiempo 
+		# en el rango del pueblo mientras el jugador no presiona nada.
+		volumen_actual = move_toward(volumen_actual, objetivo_volumen, delta * 0.2)
 
 func crear_tramo():
 	var nuevo_suelo = suelo_scene.instantiate()
 	nuevo_suelo.position = Vector3(0, 0, z_proxima_generacion)
+	var bioma_envio = volumen_actual
+	#pa redondear sino pues comentar XD
+	#var bioma_envio = snapped(volumen_actual, 0.2)
 	
 	var color_final = color_bosque.lerp(color_ciudad, volumen_actual)
 	var color_piso_final = color_piso_bosque.lerp(color_piso_ciudad, volumen_actual)
@@ -53,7 +63,7 @@ func crear_tramo():
 	if volumen_actual > 0.8: x_siguiente = move_toward(x_siguiente, 0.0, 5.0)
 	
 	add_child(nuevo_suelo)
-	nuevo_suelo.configurar(x_conexion, x_siguiente, color_final, color_piso_final, volumen_actual)
+	nuevo_suelo.configurar(x_conexion, x_siguiente, color_final, color_piso_final, bioma_envio)
 	
 	x_conexion = x_siguiente
 	tramos_activos.append(nuevo_suelo)

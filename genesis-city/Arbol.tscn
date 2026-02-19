@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://ljw5n3fg8l5d"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_were7"]
+
+[node name="Arbol" type="Node3D" unique_id=991257809]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=693698729]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0045586824, 1.0402924, 0)
+mesh = SubResource("CylinderMesh_were7")

@@ -1,6 +1,6 @@
 extends Camera3D
 
-var speed = 5.0 
+var speed = 25.0 
 
 
 

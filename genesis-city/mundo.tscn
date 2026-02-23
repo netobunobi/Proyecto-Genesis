@@ -30,6 +30,8 @@ camara_3d = NodePath("../Camera3D")
 escena_arbol = ExtResource("5_5ckkb")
 escena_edificio = ExtResource("4_otwa2")
 escena_farol = ExtResource("6_2hh7m")
+ruido_minimo_db = -85.0
+ruido_maximo_db = -55.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=752140072]
 environment = SubResource("Environment_otwa2")

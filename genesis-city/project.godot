@@ -15,6 +15,10 @@ run/main_scene="uid://dllqek0if76ug"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[audio]
+
+driver/enable_input=true
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

@@ -8,15 +8,21 @@ extends Node
 @export var escena_edificio: PackedScene
 @export var escena_farol: PackedScene
 
-@export_group("Corrección Manual de Altura")
-@export var offset_casas: float = -1.0      # <--- JUEGA CON ESTO SI FLOTAN
-@export var offset_edificios: float = -5.0  # <--- JUEGA CON ESTO SI FLOTAN
+@export_group("Sensibilidad del Micrófono")
+@export var ruido_minimo_db: float = -60.0 # Silencio absoluto
+@export var ruido_maximo_db: float = -35.0 # Hablar normal activa la ciudad
 
-var longitud_tramo = 50.0 
+@export_group("Corrección Manual de Altura")
+@export var offset_casas: float = -1.0
+@export var offset_edificios: float = 0.0
+
+var longitud_tramo = 20.0 # Ahora es dinámica (cambia según el bioma)
 var tramos_activos = [] 
 var z_proxima_generacion = 0.0 
-var volumen_actual: float = 0.0 
-var objetivo_volumen: float = 0.0 
+
+var indice_bus_mic: int
+var volumen_graficador: float = 0.0 # <--- LA TRAMPA DE SONIDO (El Graficador)
+var volumen_actual: float = 0.0
 
 # Colores del entorno
 var color_bosque = Color("5c4033") 
@@ -28,48 +34,71 @@ var x_conexion: float = 0.0
 
 func _ready() -> void:
 	if camara_3d == null: camara_3d = get_viewport().get_camera_3d()
+	indice_bus_mic = AudioServer.get_bus_index("Microfono")
 	for i in range(2): crear_tramo()
 
 func _process(delta: float) -> void:
-	if camara_3d.position.z < (z_proxima_generacion + 50.0): 
-		crear_tramo()
-	borrar_tramos_viejos()
+	# 1. LEER EL MICRÓFONO EN VIVO
+	var volumen_db = AudioServer.get_bus_peak_volume_left_db(indice_bus_mic, 0)
+	var lectura_bruta = clampf((volumen_db - ruido_minimo_db) / (ruido_maximo_db - ruido_minimo_db), 0.0, 1.0)
 	
-	if Input.is_action_pressed("ui_accept"):
-		objetivo_volumen = 1.0
-		# Subida rápida como ya la tienes
-		volumen_actual = move_toward(volumen_actual, objetivo_volumen, delta * 0.5)
-	else:
-		objetivo_volumen = 0.0
-		# BAJADA MÁS LENTA: 
-		# Al poner 0.2 o 0.15, obligamos a que el valor "flote" más tiempo 
-		# en el rango del pueblo mientras el jugador no presiona nada.
-		volumen_actual = move_toward(volumen_actual, objetivo_volumen, delta * 0.2)
+	# 2. LA TRAMPA DE SONIDO (El Graficador)
+	# Si haces ruido, lo guardamos. Si te callas, no importa, ya quedó registrado.
+	if lectura_bruta > volumen_graficador:
+		volumen_graficador = lectura_bruta
+	
+	# 3. ¿TOCA CREAR TRAMO? (Le damos un colchón de 60 metros para los tramos largos)
+	if camara_3d.position.z < (z_proxima_generacion + 60.0):
+		crear_tramo()
+		
+	borrar_tramos_viejos()
 
 func crear_tramo():
+	# 1. SACAMOS EL DATO ATRAPADO
+	var bioma_envio = volumen_graficador
+	
+	# EL TAMAÑO DEBE SER FIJO SIEMPRE (Para que no haya huecos ni choques)
+	longitud_tramo = 50.0
+		
+	# 2. EL GRAFICADOR SE DESVANECE INTELIGENTEMENTE
+	# En vez de cambiar el tamaño físico, hacemos que la "memoria" dure más en la ciudad
+	if bioma_envio > 0.85:
+		# En ciudad, bajamos poquito a poquito (durará varios bloques de 50m)
+		volumen_graficador -= 0.15 
+	elif bioma_envio > 0.25:
+		# En pueblo, baja más rápido
+		volumen_graficador -= 0.3
+	else:
+		# En bosque, se resetea por completo
+		volumen_graficador = 0.0
+		
+	# Nos aseguramos de que no baje de cero
+	volumen_graficador = clampf(volumen_graficador, 0.0, 1.0)
+	
+	# 3. CREACIÓN NORMAL DEL SUELO
 	var nuevo_suelo = suelo_scene.instantiate()
 	nuevo_suelo.position = Vector3(0, 0, z_proxima_generacion)
-	var bioma_envio = volumen_actual
-	#pa redondear sino pues comentar XD
-	#var bioma_envio = snapped(volumen_actual, 0.2)
 	
-	var color_final = color_bosque.lerp(color_ciudad, volumen_actual)
-	var color_piso_final = color_piso_bosque.lerp(color_piso_ciudad, volumen_actual)
+	var color_final = color_bosque.lerp(color_ciudad, bioma_envio)
+	var color_piso_final = color_piso_bosque.lerp(color_piso_ciudad, bioma_envio)
 	
-	var desviacion_maxima = 3.0 * (1.0 - volumen_actual)
+	var desviacion_maxima = 3.0 * (1.0 - bioma_envio)
 	var x_siguiente = x_conexion + randf_range(-desviacion_maxima, desviacion_maxima)
 	x_siguiente = clamp(x_siguiente, -4.0, 4.0)
 	
-	if volumen_actual > 0.8: x_siguiente = move_toward(x_siguiente, 0.0, 5.0)
+	if bioma_envio > 0.8: x_siguiente = move_toward(x_siguiente, 0.0, 5.0)
 	
 	add_child(nuevo_suelo)
 	nuevo_suelo.configurar(x_conexion, x_siguiente, color_final, color_piso_final, bioma_envio)
 	
 	x_conexion = x_siguiente
 	tramos_activos.append(nuevo_suelo)
-	spawnear_edificios(nuevo_suelo)
+	
+	# Le pasamos la info a los edificios
+	volumen_actual = bioma_envio
+	spawnear_edificios(nuevo_suelo) 
+	
 	z_proxima_generacion -= longitud_tramo
-
 func borrar_tramos_viejos():
 	if tramos_activos.size() > 0:
 		var tramo_mas_viejo = tramos_activos[0]
@@ -112,19 +141,16 @@ func spawnear_edificios(tramo_actual):
 				objeto.scale = Vector3.ONE * escala
 				
 			"CASA":
-				# 1. Forma: Baja y gorda
-				objeto.scale = Vector3(2.5, 2.0, 2.5)
+				# 1. Altura dinámica: Base de 2 metros + hasta 3 metros extra según el ruido
+				var altura_casa = 2.0 + (volumen_actual * 3.0) 
 				
-				# 2. Posición: Altura fija + TU AJUSTE MANUAL
-				# Si flotan, baja el valor de 'offset_casas' en el inspector
-				objeto.position.y = 1.0 + offset_casas
+				# 2. Forma: Base ancha, altura variable
+				objeto.scale = Vector3(2.5, altura_casa, 2.5)
 				
-				# 3. Color: Aleatorio para parecer pueblo
-				if mesh_visual:
-					var mat = StandardMaterial3D.new()
-					# Colores: Ladrillo, Crema, Blanco
-					mat.albedo_color = [Color("b22222"), Color("ffe4c4"), Color("f5f5f5")].pick_random()
-					mesh_visual.material_override = mat
+				# 3. Posición: La mitad de SU propia altura para que pise el suelo + tu ajuste
+				objeto.position.y = offset_casas
+				
+				# (Tu código de colores sigue igual abajo...)
 				
 			"EDIFICIO":
 				# 1. Forma: Alta y variada

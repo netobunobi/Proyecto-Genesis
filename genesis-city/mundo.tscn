@@ -9,15 +9,27 @@
 
 [sub_resource type="Environment" id="Environment_otwa2"]
 background_mode = 1
-background_color = Color(0, 0.6509804, 0.9019608, 1)
+background_color = Color(0.019607844, 0.03137255, 0.078431375, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.8646751, 0.86467516, 0.8646751, 1)
+ambient_light_color = Color(0.05882353, 0.16470589, 0.14117648, 1)
+glow_enabled = true
+glow_intensity = 1.5
+glow_bloom = 0.2
+glow_hdr_threshold = 1.1
+fog_sky_affect = 0.8
+volumetric_fog_enabled = true
+volumetric_fog_albedo = Color(0.16470589, 0.16470589, 0.16470589, 1)
+volumetric_fog_emission = Color(0.019607844, 0.03137255, 0.078431375, 1)
+volumetric_fog_length = 90.0
 
 [sub_resource type="AudioStreamMicrophone" id="AudioStreamMicrophone_5ckkb"]
 
 [node name="Mundo" type="Node3D" unique_id=438850040]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=62276623]
+transform = Transform3D(0.8660254, -0.43301272, 0.24999999, 0, 0.49999997, 0.86602545, -0.5, -0.75, 0.43301266, 0, 780.3053, 0)
+light_color = Color(0.6666667, 0.8666667, 1, 1)
+light_energy = 1.5
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=421566475]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9089955, 2.6381578)
@@ -30,13 +42,12 @@ camara_3d = NodePath("../Camera3D")
 escena_arbol = ExtResource("5_5ckkb")
 escena_edificio = ExtResource("4_otwa2")
 escena_farol = ExtResource("6_2hh7m")
-ruido_minimo_db = -85.0
-ruido_maximo_db = -55.0
+ruido_minimo_db = -40.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=752140072]
 environment = SubResource("Environment_otwa2")
 
-[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="." unique_id=1636725862]
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1299090516]
 stream = SubResource("AudioStreamMicrophone_5ckkb")
 autoplay = true
 bus = &"Microfono"

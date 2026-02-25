@@ -3,17 +3,14 @@ extends Node
 @export var suelo_scene: PackedScene
 @export var camara_3d: Node3D
 
-# ---> ¡NUEVO! EL GUARDÍAN DEL NODO <---
-@export var reproductor_mic: AudioStreamPlayer 
-
 @export_group("Escenas")
 @export var escena_arbol: PackedScene
 @export var escena_edificio: PackedScene
 @export var escena_farol: PackedScene
 
 @export_group("Sensibilidad del Micrófono")
-@export var ruido_minimo_db: float = -60.0 
-@export var ruido_maximo_db: float = -35.0 
+@export var ruido_minimo_db: float = -45.0 
+@export var ruido_maximo_db: float = -30.0 
 
 @export_group("Corrección Manual de Altura")
 @export var offset_casas: float = -1.0
@@ -23,32 +20,25 @@ var longitud_tramo = 50.0
 var tramos_activos = [] 
 var z_proxima_generacion = 0.0 
 
-var indice_bus_mic: int
-var spectrum_analyzer
+var capture_effect: AudioEffectCapture 
 var volumen_graficador: float = 0.0 
 var volumen_actual: float = 0.0
 
-# --- VARIABLES PARA VER EL MICRO EN PANTALLA ---
 var barra_volumen: ProgressBar
 var label_db: Label
 
-# Colores del entorno
-var color_bosque = Color("5c4033") 
-var color_ciudad = Color("1a1a1a") 
-var color_piso_bosque = Color("2d4c1e") 
-var color_piso_ciudad = Color("444444") 
-
+var color_bosque = Color("#2a1b14") 
+var color_ciudad = Color("#14161a")
+var color_piso_bosque = Color("#154222") # Verde pino rico
+var color_piso_ciudad = Color("#282c33") # Gris azulado urbano
 var x_conexion: float = 0.0
 
 func _ready() -> void:
 	if camara_3d == null: camara_3d = get_viewport().get_camera_3d()
 	
-	# Buscamos el nodo de audio
-	reproductor_mic = get_node_or_null("../AudioStreamPlayer") 
+	var indice_bus_mic = AudioServer.get_bus_index("Microfono")
+	capture_effect = AudioServer.get_bus_effect(indice_bus_mic, 0) as AudioEffectCapture
 	
-	indice_bus_mic = AudioServer.get_bus_index("Microfono")
-	
-	# --- INICIALIZACIÓN DE LA INTERFAZ (Para evitar el error 'Nil') ---
 	var canvas = CanvasLayer.new()
 	add_child(canvas)
 	
@@ -62,37 +52,44 @@ func _ready() -> void:
 	label_db.add_theme_font_size_override("font_size", 30)
 	canvas.add_child(label_db)
 	
-	for i in range(2): crear_tramo()
+	for i in range(4): crear_tramo()
 
 func _process(delta: float) -> void:
-	# 1. CAPTURA DE VOLUMEN
-	var volumen_db = AudioServer.get_bus_peak_volume_left_db(indice_bus_mic, 0)
+	# 1. LEER LA ONDA FÍSICA DIRECTAMENTE
+	var max_amplitud: float = 0.0
 	
-	# 2. EL SALVAVIDAS (Solo si existe el nodo)
-	if reproductor_mic != null:
-		if volumen_db < -70.0 and not reproductor_mic.playing:
-			reproductor_mic.play()
+	if capture_effect != null:
+		var frames_disponibles = capture_effect.get_frames_available()
+		if frames_disponibles > 0:
+			var buffer_audio = capture_effect.get_buffer(frames_disponibles)
+			for frame in buffer_audio:
+				var amplitud_actual = abs(frame.x) 
+				if amplitud_actual > max_amplitud:
+					max_amplitud = amplitud_actual
+
+	# 2. CONVERTIR LA VIBRACIÓN A DECIBELES
+	var volumen_db = linear_to_db(max(max_amplitud, 0.0001))
 	
-	# 3. CONVERSIÓN A BIOMA
+	# 3. MATEMÁTICAS DEL BIOMA (Valores fijos y estables)
 	var lectura_bruta = clampf((volumen_db - ruido_minimo_db) / (ruido_maximo_db - ruido_minimo_db), 0.0, 1.0)
 	
-	# 4. GRAFICADOR (MEMORIA)
 	if lectura_bruta > volumen_graficador:
 		volumen_graficador = lectura_bruta 
 	else:
 		volumen_graficador = move_toward(volumen_graficador, 0.0, delta * 0.15)
 	
-	# --- ACTUALIZAR INTERFAZ (Ya no dará error Nil porque se crearon arriba) ---
+	# --- INTERFAZ ---
 	if barra_volumen != null:
 		barra_volumen.value = volumen_graficador * 100.0
 	if label_db != null:
-		label_db.text = "Señal Real: " + str(snapped(volumen_db, 0.1)) + " dB"
+		label_db.text = "Micro: " + str(snapped(volumen_db, 0.1)) + " dB"
 	
-	if camara_3d.position.z < (z_proxima_generacion + 60.0):
+	if camara_3d.position.z < (z_proxima_generacion + 180.0):
 		crear_tramo()
 		
 	borrar_tramos_viejos()
-	
+
+# ----------------------------------------------------------------------
 func crear_tramo():
 	var bioma_envio = volumen_graficador
 	longitud_tramo = 50.0
@@ -173,8 +170,16 @@ func spawnear_edificios(tramo_actual):
 				if mesh_visual:
 					var mat = StandardMaterial3D.new()
 					mat.albedo_color = [Color("2f4f4f"), Color("1c1c1c"), Color("708090")].pick_random()
-					mat.roughness = 0.1 
-					mat.metallic = 0.5
+					
+					# --- CAMBIOS CLAVE AQUÍ ---
+					# Roughness (Rugosidad) en 1.0 hace que sea totalmente mate, como cemento seco.
+					mat.roughness = 1.0 
+					# Metallic en 0.0 asegura que no parezca metal pulido.
+					mat.metallic = 0.0
+					# Specular en 0.0 elimina los brillos directos de luces.
+					mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+					# ---------------------------
+					
 					mesh_visual.material_override = mat
 				
 			"FAROL":

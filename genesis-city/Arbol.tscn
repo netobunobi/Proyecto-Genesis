@@ -2,8 +2,42 @@
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_were7"]
 
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_were7"]
+emission_shape = 3
+emission_box_extents = Vector3(2, 2, 2)
+gravity = Vector3(0, 0, 0)
+turbulence_enabled = true
+
+[sub_resource type="Gradient" id="Gradient_were7"]
+offsets = PackedFloat32Array(0, 0.015873017, 0.74603176)
+colors = PackedColorArray(0, 0, 0, 1, 0.32539684, 0.32539684, 0.32539684, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_tcbag"]
+gradient = SubResource("Gradient_were7")
+fill = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_were7"]
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 0
+emission_enabled = true
+emission = Color(1, 0.6666667, 0, 1)
+emission_energy_multiplier = 7.0
+emission_texture = SubResource("GradientTexture2D_tcbag")
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_were7"]
+material = SubResource("StandardMaterial3D_were7")
+size = Vector2(0.05, 0.05)
+
 [node name="Arbol" type="Node3D" unique_id=991257809]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=693698729]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0045586824, 1.0402924, 0)
 mesh = SubResource("CylinderMesh_were7")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="." unique_id=1500199124]
+amount = 11
+lifetime = 3.0
+process_material = SubResource("ParticleProcessMaterial_were7")
+draw_pass_1 = SubResource("QuadMesh_were7")

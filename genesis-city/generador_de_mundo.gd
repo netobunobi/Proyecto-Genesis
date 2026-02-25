@@ -183,4 +183,13 @@ func spawnear_edificios(tramo_actual):
 					mesh_visual.material_override = mat
 				
 			"FAROL":
-				objeto.position.y = 0.0
+				objeto.scale = Vector3.ONE 
+				objeto.position.y = 0.0 
+				
+				# Si la posición X es menor a 0, está en la banqueta izquierda
+				if objeto.position.x < 0:
+					# Gira 90 grados a la derecha para ver la calle
+					objeto.rotation_degrees.y = -90 
+				else:
+					# Gira 90 grados a la izquierda para ver la calle
+					objeto.rotation_degrees.y = 90

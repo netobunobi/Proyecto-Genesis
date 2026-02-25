@@ -1,13 +1,47 @@
 [gd_scene format=3 uid="uid://blssajc66g2u7"]
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_pvooy"]
+top_radius = 0.3
+bottom_radius = 0.4
+height = 6.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pvooy"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_rt73m"]
+size = Vector3(0.1, 0.1, 1.2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rt73m"]
-albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pvooy"]
+size = Vector3(0.2, 0.1, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rvdhl"]
+emission_enabled = true
+emission = Color(1, 0.6666667, 0, 1)
+emission_energy_multiplier = 4.0
 
 [node name="Farol" type="Node3D" unique_id=1437933137]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1404752782]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0011928, 0)
+[node name="poste" type="MeshInstance3D" parent="." unique_id=2105073107]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 mesh = SubResource("CylinderMesh_pvooy")
+surface_material_override/0 = SubResource("StandardMaterial3D_pvooy")
+
+[node name="brazo" type="MeshInstance3D" parent="." unique_id=3049146]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.9, -0.5)
+mesh = SubResource("BoxMesh_rt73m")
 surface_material_override/0 = SubResource("StandardMaterial3D_rt73m")
+
+[node name="foco" type="MeshInstance3D" parent="." unique_id=128026546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.9, -1)
+mesh = SubResource("BoxMesh_pvooy")
+surface_material_override/0 = SubResource("StandardMaterial3D_rvdhl")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=1054079704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.9, -1)
+light_color = Color(1, 0.6666667, 0, 1)
+light_energy = 2.0
+distance_fade_enabled = true
+distance_fade_begin = 60.0
+distance_fade_length = 20.0
+omni_range = 8.0

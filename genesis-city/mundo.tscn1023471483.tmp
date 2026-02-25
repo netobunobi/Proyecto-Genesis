@@ -6,25 +6,10 @@
 [ext_resource type="PackedScene" uid="uid://dtxqgrvtyqpxp" path="res://Edificio.tscn" id="4_otwa2"]
 [ext_resource type="PackedScene" uid="uid://ljw5n3fg8l5d" path="res://Arbol.tscn" id="5_5ckkb"]
 [ext_resource type="PackedScene" uid="uid://blssajc66g2u7" path="res://Farol.tscn" id="6_2hh7m"]
-[ext_resource type="Shader" uid="uid://b5lxfsy4vof6p" path="res://mundo.gdshader" id="7_2hh7m"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_5ckkb"]
-shader = ExtResource("7_2hh7m")
-shader_parameter/color_cielo_arriba = Color(0.01, 0.01, 0.03, 1)
-shader_parameter/color_horizonte = Color(0.02, 0.02, 0.05, 1)
-shader_parameter/umbral_estrellas = 0.998
-shader_parameter/velocidad_titileo = 0.5
-shader_parameter/tamano_luna = 0.03
-shader_parameter/color_luna = Color(1, 1, 0.9, 1)
-shader_parameter/posicion_luna = Vector3(0, 0.98, 0.2)
-
-[sub_resource type="Sky" id="Sky_2hh7m"]
-sky_material = SubResource("ShaderMaterial_5ckkb")
 
 [sub_resource type="Environment" id="Environment_otwa2"]
-background_mode = 2
+background_mode = 1
 background_color = Color(0.019607844, 0.03137255, 0.078431375, 1)
-sky = SubResource("Sky_2hh7m")
 ambient_light_source = 2
 ambient_light_color = Color(0.05882353, 0.16470589, 0.14117648, 1)
 glow_enabled = true
@@ -33,11 +18,9 @@ glow_bloom = 0.2
 glow_hdr_threshold = 1.1
 fog_sky_affect = 0.8
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.08
 volumetric_fog_albedo = Color(0.16470589, 0.16470589, 0.16470589, 1)
 volumetric_fog_emission = Color(0.019607844, 0.03137255, 0.078431375, 1)
-volumetric_fog_length = 40.0
-volumetric_fog_sky_affect = 0.395
+volumetric_fog_length = 90.0
 
 [sub_resource type="AudioStreamMicrophone" id="AudioStreamMicrophone_5ckkb"]
 

@@ -130,50 +130,59 @@ func borrar_tramos_viejos():
 func spawnear_edificios(tramo_actual):
 	var lista_puntos_original = tramo_actual.obtener_puntos_spawn()
 	
-	# --- 1. GENERAR ÁRBOLES EXTRA ---
+	# --- 1. GENERAR OBJETOS EXTRA (PROFUNDIDAD Y DENSIDAD) ---
 	var puntos_extra = []
 	for datos in lista_puntos_original:
+		
 		if datos["tipo"] == "ARBOL":
-			var cantidad_extra = randi_range(3, 5) 
+			# BOSQUE PROFUNDO
+			var cantidad_extra = randi_range(6, 12) 
 			for i in range(cantidad_extra):
 				var nuevo_dato = datos.duplicate()
-				var empuje_x = randf_range(2.0, 10.0)
+				var empuje_x = randf_range(3.0, 30.0)
 				if datos["posicion"].x < 0:
 					nuevo_dato["posicion"].x -= empuje_x
 				else:
 					nuevo_dato["posicion"].x += empuje_x
-				nuevo_dato["posicion"].z += randf_range(-8.0, 8.0)
+				nuevo_dato["posicion"].z += randf_range(-15.0, 15.0)
+				puntos_extra.append(nuevo_dato)
+				
+		elif datos["tipo"] == "EDIFICIO" or datos["tipo"] == "CASA":
+			# CIUDAD DENSA
+			var filas_extra = randi_range(1, 4) 
+			for fila in range(1, filas_extra + 1):
+				var nuevo_dato = datos.duplicate()
+				var empuje_x = randf_range(8.0, 12.0) * fila
+				if datos["posicion"].x < 0:
+					nuevo_dato["posicion"].x -= empuje_x
+				else:
+					nuevo_dato["posicion"].x += empuje_x
+				nuevo_dato["posicion"].z += randf_range(-4.0, 4.0)
 				puntos_extra.append(nuevo_dato)
 	
 	var todos_los_puntos = lista_puntos_original.duplicate()
 	todos_los_puntos.append_array(puntos_extra)
 	
 	# --- 2. FILTRO DE ESPACIO PERSONAL (ANTI-SUPERPOSICIÓN) ---
-	var lista_puntos_limpia = []
+	var lista_puntos_limpia = [] # <-- ¡ESTA ES LA VARIABLE QUE FALTABA!
 	
 	for dato in todos_los_puntos:
 		var posicion_actual = dato["posicion"]
 		var hay_choque = false
 		
-		# Revisamos contra los que ya fueron aprobados
 		for punto_aprobado in lista_puntos_limpia:
 			var distancia = posicion_actual.distance_to(punto_aprobado["posicion"])
 			
-			# Distancia segura por defecto (4.5 metros)
 			var dist_minima = 4.5
-			
-			# Si alguno de los dos objetos es un EDIFICIO, necesitan mucho más espacio
 			if dato["tipo"] == "EDIFICIO" or punto_aprobado["tipo"] == "EDIFICIO":
 				dist_minima = 6.0
-			# Los FAROLES son muy delgados, no estorban tanto
 			elif dato["tipo"] == "FAROL" or punto_aprobado["tipo"] == "FAROL":
 				dist_minima = 1.0
 				
 			if distancia < dist_minima:
 				hay_choque = true
-				break # Dejamos de revisar porque ya chocó con algo
+				break 
 				
-		# Si no chocó con nadie, lo agregamos a la lista oficial
 		if not hay_choque:
 			lista_puntos_limpia.append(dato)
 			
@@ -181,6 +190,7 @@ func spawnear_edificios(tramo_actual):
 	for datos in lista_puntos_limpia:
 		var escena_a_usar: PackedScene = null
 		
+		# A partir de aquí sigue tu código normal:
 		match datos["tipo"]:
 			"ARBOL": escena_a_usar = escena_arbol
 			"CASA": escena_a_usar = escena_edificio 

@@ -16,6 +16,9 @@ extends Node
 @export var offset_casas: float = -1.0
 @export var offset_edificios: float = 0.0
 
+@export_group("Generación Procedural")
+@export var profundidad_ciudad: int = 14 # Cambia este número para hacer la ciudad más ancha
+
 var longitud_tramo = 50.0 
 var tramos_activos = [] 
 var z_proxima_generacion = 0.0 
@@ -113,6 +116,30 @@ func crear_tramo():
 	add_child(nuevo_suelo)
 	nuevo_suelo.configurar(x_conexion, x_siguiente, color_final, color_piso_final, bioma_envio)
 	
+	# --- NUEVO: CIMIENTO MATEMÁTICO DINÁMICO ---
+	# Generamos un piso extra proceduralmente basado en la profundidad de la ciudad
+	var base_extra = MeshInstance3D.new()
+	base_extra.mesh = BoxMesh.new()
+	
+	# Matemática pura: 20 metros centrales + (30 metros de expansión por cada nivel de profundidad)
+	var ancho_total = 20.0 + (profundidad_ciudad * 30.0)
+	
+	# Le damos el ancho calculado, 0.2 de grosor, y el largo exacto del tramo
+	base_extra.mesh.size = Vector3(ancho_total, 0.2, longitud_tramo)
+	
+	# TRUCO: Lo bajamos un poquito (y = -0.1) para que se deslice justo 
+	# por debajo de tu calle actual y no cause errores visuales (Z-fighting)
+	base_extra.position = Vector3(0, -0.1, 0) 
+	
+	# Le aplicamos el mismo color del bioma para que se camufle perfectamente
+	var mat_base = StandardMaterial3D.new()
+	mat_base.albedo_color = color_piso_final
+	base_extra.material_override = mat_base
+	
+	# Lo pegamos al chunk para que se borre automáticamente cuando el chunk quede atrás
+	nuevo_suelo.add_child(base_extra)
+	# ------------------------------------------------
+	
 	x_conexion = x_siguiente
 	tramos_activos.append(nuevo_suelo)
 	
@@ -120,6 +147,8 @@ func crear_tramo():
 	spawnear_edificios(nuevo_suelo) 
 	
 	z_proxima_generacion -= longitud_tramo
+	
+	
 func borrar_tramos_viejos():
 	if tramos_activos.size() > 0:
 		var tramo_mas_viejo = tramos_activos[0]
@@ -133,30 +162,29 @@ func spawnear_edificios(tramo_actual):
 	# --- 1. GENERAR OBJETOS EXTRA (PROFUNDIDAD Y DENSIDAD) ---
 	var puntos_extra = []
 	for datos in lista_puntos_original:
+		# Los que nacen en la calle son los principales:
+		datos["es_secundario"] = false 
 		
 		if datos["tipo"] == "ARBOL":
-			# BOSQUE PROFUNDO
 			var cantidad_extra = randi_range(6, 12) 
 			for i in range(cantidad_extra):
 				var nuevo_dato = datos.duplicate()
+				nuevo_dato["es_secundario"] = true # <--- MARCADO COMO SECUNDARIO
 				var empuje_x = randf_range(3.0, 30.0)
-				if datos["posicion"].x < 0:
-					nuevo_dato["posicion"].x -= empuje_x
-				else:
-					nuevo_dato["posicion"].x += empuje_x
+				if datos["posicion"].x < 0: nuevo_dato["posicion"].x -= empuje_x
+				else: nuevo_dato["posicion"].x += empuje_x
 				nuevo_dato["posicion"].z += randf_range(-15.0, 15.0)
 				puntos_extra.append(nuevo_dato)
 				
 		elif datos["tipo"] == "EDIFICIO" or datos["tipo"] == "CASA":
-			# CIUDAD DENSA
-			var filas_extra = randi_range(1, 4) 
+			# Usamos tu nueva variable de profundidad:
+			var filas_extra = randi_range(1, profundidad_ciudad) 
 			for fila in range(1, filas_extra + 1):
 				var nuevo_dato = datos.duplicate()
+				nuevo_dato["es_secundario"] = true # <--- MARCADO COMO SECUNDARIO
 				var empuje_x = randf_range(8.0, 12.0) * fila
-				if datos["posicion"].x < 0:
-					nuevo_dato["posicion"].x -= empuje_x
-				else:
-					nuevo_dato["posicion"].x += empuje_x
+				if datos["posicion"].x < 0: nuevo_dato["posicion"].x -= empuje_x
+				else: nuevo_dato["posicion"].x += empuje_x
 				nuevo_dato["posicion"].z += randf_range(-4.0, 4.0)
 				puntos_extra.append(nuevo_dato)
 	
@@ -391,14 +419,18 @@ func spawnear_edificios(tramo_actual):
 				var mat_puerta = StandardMaterial3D.new()
 				mat_puerta.albedo_color = [Color("#2c3e50"), Color("#54433a")].pick_random()
 
-				# --- 2. DIMENSIONES Y CÁLCULOS ---
-				var ancho = randf_range(3.5, 5.0) 
-				var prof = randf_range(3.5, 5.0)
-				var alto_piso = 2.2 # Pisos un poco más altos para que quepan bien las ventanas
+				# --- 2. DIMENSIONES Y CÁLCULOS (Variación Extrema) ---
+				# Variamos más el ancho y la profundidad para que haya edificios delgados y gordos
+				var ancho = randf_range(2.5, 5.5) 
+				var prof = randf_range(2.5, 5.5)
+				var alto_piso = 2.2 
 				
-				# La altura depende del volumen del micrófono
+				# El volumen da la base, pero le sumamos un random drástico (-3 a +5 pisos) 
+				# para que los vecinos no midan lo mismo.
 				var pisos_extra = int(volumen_actual * 15.0)
-				var total_pisos = 3 + pisos_extra + randi_range(0, 2)
+				var variacion_local = randi_range(-3, 5) 
+				# max(2, ...) asegura que NUNCA haya un edificio de menos de 2 pisos.
+				var total_pisos = max(2, 3 + pisos_extra + variacion_local) 
 				var altura_acumulada = 0.0
 
 				# --- LÓGICA DE PATRÓN CONSTANTE ---
@@ -461,13 +493,17 @@ func spawnear_edificios(tramo_actual):
 					# Subimos la altura para el siguiente piso
 					altura_acumulada += alto_piso
 					
-				# --- 4. GIRAR EL EDIFICIO HACIA LA CALLE ---
-				if objeto.position.x < 0:
-					# Banqueta izquierda: gira a la DERECHA (+90)
-					objeto.rotation_degrees.y = 90 
+				# --- 4. GIRAR EL EDIFICIO (Principal vs Secundario) ---
+				if datos["es_secundario"] == true:
+					# Si está atrás, puede mirar hacia cualquier de los 4 lados al azar
+					var rotaciones_posibles = [0, 90, 180, -90]
+					objeto.rotation_degrees.y = rotaciones_posibles.pick_random()
 				else:
-					# Banqueta derecha: gira a la IZQUIERDA (-90)
-					objeto.rotation_degrees.y = -90
+					# Si está en la banqueta, obligatoriamente mira hacia la calle
+					if objeto.position.x < 0:
+						objeto.rotation_degrees.y = 90 
+					else:
+						objeto.rotation_degrees.y = -90
 						
 			"FAROL":
 				objeto.scale = Vector3.ONE 
